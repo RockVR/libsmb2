@@ -1361,6 +1361,15 @@ read_cb(struct smb2_context *smb2, int status,
 
         if (status == SMB2_STATUS_SUCCESS) {
                 rd->read_cb_data.fh->offset = rd->read_cb_data.offset + rep->data_length;
+                /* The receive iovec already filled the caller's read buffer.
+                 * The raw reply owns a separate copy; the high-level API does
+                 * not expose it. Release it before invoking a user callback,
+                 * which may close or destroy the connection. Empty replies
+                 * never initialize rep->data, so only free a non-empty copy. */
+                if (rep->data_length > 0) {
+                        free(rep->data);
+                        rep->data = NULL;
+                }
         }
 
         rd->cb(smb2, rep->data_length, &rd->read_cb_data, rd->cb_data);

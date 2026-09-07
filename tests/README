@@ -26,3 +26,10 @@ A good idea is to use a special share/subdirectory on the server
 so that the tests do not overwrite/corrupt/delete important files.
 Create a dedicated share on the server that is only used for testing
 and be prepared that any data in this share can be randomly deleted.
+
+Read reply lifetime (PR quick, macOS):
+  bash tests/test-read-reply-lifetime.sh
+Exercises the production high-level read callback. A successful non-empty read
+must release its private response copy before calling user code; empty, EOF and
+error replies must not free an uninitialized data pointer. The caller-owned read
+buffer remains valid. This test fails on the pre-fix implementation.
