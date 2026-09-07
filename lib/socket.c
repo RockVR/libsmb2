@@ -419,7 +419,6 @@ read_more_data:
                                         return -1;
                                 }
                                 if (smb2_add_iovector(smb2, &smb2->in,tmp,len, free) == NULL) {
-                                        free(tmp);
                                         smb2_set_error(smb2, "Failed to add iovector for TRFM payload");
                                         return -1;
                                 }
@@ -509,7 +508,6 @@ read_more_data:
                                         return -1;
                                 }
                                 if (smb2_add_iovector(smb2, &smb2->in,tmp, len, free) == NULL) {
-                                        free(tmp);
                                         return -1;
                                 }
                         }
@@ -585,7 +583,6 @@ read_more_data:
                         if (smb2_add_iovector(smb2, &smb2->in,
                                   tmp,
                                   alen, free) == NULL) {
-                                free(tmp);
                                 return -1;
                         }
                 }
@@ -630,7 +627,6 @@ read_more_data:
                                         if (smb2_add_iovector(smb2, &smb2->in,
                                                   tmp,
                                                   len, free) == NULL) {
-                                                free(tmp);
                                                 return -1;
                                         }
                                 }
@@ -670,7 +666,6 @@ read_more_data:
                                 if (smb2_add_iovector(smb2, &smb2->in,
                                           tmp,
                                           len, free) == NULL) {
-                                        free(tmp);
                                         return -1;
                                 }
                         }
@@ -719,7 +714,6 @@ read_more_data:
                         if (smb2_add_iovector(smb2, &smb2->in,
                                               tmp,
                                               len, free) == NULL) {
-                                free(tmp);
                                 smb2_set_error(smb2, "Failed to add iovector for PAD");
                                 return -1;
                         }
@@ -870,6 +864,10 @@ smb2_read_from_socket(struct smb2_context *smb2)
                 }
                 if (count) {
                         return count;
+                }
+                /* LOGOFF may close the socket in its successful callback. */
+                if (!SMB2_VALID_SOCKET(smb2->fd)) {
+                        return 0;
                 }
         }
 }
@@ -1045,7 +1043,7 @@ smb2_service_fd(struct smb2_context *smb2, t_socket fd, int revents)
                 }
         }
 
-  out:
+ out:
         if (smb2->timeout) {
                 smb2_timeout_pdus(smb2);
         }
