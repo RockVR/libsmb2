@@ -1019,6 +1019,10 @@ smb2_read_from_socket(struct smb2_context *smb2)
                 if (count) {
                         return count;
                 }
+                /* LOGOFF may close the socket in its successful callback. */
+                if (!SMB2_VALID_SOCKET(smb2->fd)) {
+                        return 0;
+                }
         }
 }
 
